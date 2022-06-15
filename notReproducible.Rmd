@@ -1,0 +1,51 @@
+---
+title: "Non Reproducible code"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, warning=FALSE, message=FALSE}
+# Load libraries
+library(tidyverse, quietly = TRUE)
+library(broom, quietly = TRUE)
+```
+
+```{r set working environment}
+# Set working environment
+setwd("C:/Users/matthew.grainger/Documents/Projects_in_development/LivingNorwayOpenLab")
+```
+
+```{r read data, warning=FALSE}
+# read in the penguins data
+dat=read.csv("data/penguins_data.csv")
+```
+
+
+```{r subset, warning=FALSE}
+# Subset the data set and run regressions
+dat=dat %>% 
+  group_by(Species) %>% 
+  sample_frac(0.5)
+
+dat %>% 
+  nest(data = -Species) %>%
+  mutate(model = map(data, ~lm(Flipper.Length..mm.~Body.Mass..g., data = .))
+         , tidied = map(model, tidy)) %>% 
+  unnest(tidied) %>% 
+  select(-c(data,model)) %>% 
+  kableExtra::kable() %>% 
+  kableExtra::kable_styling()
+
+```
+```{r plot, warning=FALSE, message=FALSE}
+# plot the data
+dat %>% 
+  ggplot(aes(Body.Mass..g., Flipper.Length..mm., group=Species, colour=Species))+
+  geom_point()+
+ geom_smooth(method='lm')+
+  theme_classic()
+```
+
